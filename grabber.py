@@ -69,6 +69,10 @@ def choose_keepers():
 
     by_title = {}
     for poster in posters:
+        if poster == '.gitkeep':
+            # Ignore .gitkeep file that keeps the "posters" dir in the repo
+            continue
+
         split = poster.split('.')
 
         if len(split) != 3:
@@ -108,22 +112,24 @@ def load_movie_metadata():
 
     print('Loading IMDB codes...')
     with open(CODES_FILE) as f:
-        lines = f.readlines()
+        raw_lines = f.readlines()
         print('Codes loaded\n')
 
-        i = 0
-        length = len(lines)
+        codes = []
 
-        for line in lines:
-            i += 1
-
-            if line[0] == '#':  # Ignore comments
+        for code in raw_lines:
+            if code[0] == '#':  # Ignore comments
                 continue
-            if line[-1] == '\n':  # Remove newline
-                line = line[:-1]
+            if code[-1] == '\n':  # Remove newline
+                code = code[:-1]
 
-            url = f'{ROOT_URL}{line}/'
-            print(f'({i} / {length}) Finding media for {url}')
+            codes.append(code)
+
+        length = len(codes)
+
+        for c, code in enumerate(codes):
+            url = f'{ROOT_URL}{code}/'
+            print(f'({c + 1} / {length}) Finding media for {url}')
 
             try:
                 html = get_page_html(url)
@@ -140,20 +146,17 @@ def load_movie_metadata():
             media_url = url + re.findall('mediaviewer/.*?"', html)[0][:-1]
             print(f'\tMedia found at {media_url}')
 
-            metadatas.append(MovieMetadata(line, url, media_url, title))
+            metadatas.append(MovieMetadata(code, url, media_url, title))
 
     return metadatas
 
+if __name__ == '__main__':
+    print(' --- LOADING MOVIE METADATA --- ')
+    metadatas = load_movie_metadata()
 
-print(' --- LOADING MOVIE METADATA --- ')
-metadatas = load_movie_metadata()
+    print(' --- DOWNLOADING POSTERS --- ')
+    download_posters(metadatas)
 
-print(' --- DOWNLOADING POSTERS --- ')
-download_posters(metadatas)
-
-
-# download_from_file()
-
-choice = input('Done downloading. Choose posters to keep (in order if asc name)? (Y/n) ')
-if choice.lower() != 'n':
-    choose_keepers()
+    choice = input('Done downloading. Choose posters to keep (in order if asc name)? (Y/n) ')
+    if choice.lower() != 'n':
+        choose_keepers()

@@ -1,17 +1,8 @@
+# Put IMDB codes here
+# e.g. https://www.imdb.com/title/tt0970179/ has code "tt0970179"
+# These are some examples:
 tt1453405
 tt1431045
 tt0033870
 tt3915174
 tt0343818
-tt6710474
-tt0381348
-tt9731598
-tt0108255
-tt6718170
-tt0045810
-tt0056172
-tt7984734
-tt0052556
-tt7979580
-tt0382932
-tt0250494
