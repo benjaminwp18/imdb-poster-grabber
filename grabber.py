@@ -19,19 +19,55 @@ class MovieMetadata:
         self.title = title
 
 
-def get_page_html(url):
+def get_page_html(url: str) -> str:
+    """Get the HTML at the provided URL as a string.
+
+    Parameters
+    ----------
+    url : str
+        URL to get
+
+    Returns
+    -------
+    str
+        HTML from the page
+    """
     page_request = Request(url, headers=HEADERS)
     html = urlopen(page_request).read().decode("utf-8")
     return html
 
 
-def get_filepath(filename, extension='', number=None):
+def make_poster_filepath(filename: str, extension: str = '', number: int | None = None):
+    """Create the filepath a poster should be stored at.
+
+    Parameters
+    ----------
+    filename : str
+        the initial filename for the poster
+    extension : str, optional
+        file extension to append, by default ''
+    number : int | None, optional
+        ID number for multiple posters with the same filename,
+            by default None (not displayed)
+
+    Returns
+    -------
+    str
+        the filepath to store the poster at
+    """
     full_filename = filename + ('' if number is None else f'.{number}') + \
         extension
     return os.path.join(POSTERS_DIR, full_filename)
 
 
-def download_posters(metadatas):
+def download_posters(metadatas: list[MovieMetadata]):
+    """Download posters for the provided movies to POSTERS_DIR.
+
+    Parameters
+    ----------
+    metadatas : list[MovieMetadata]
+        list of movies to download posters for
+    """
     i = 0
     length = len(metadatas)
     for metadata in metadatas:
@@ -53,8 +89,8 @@ def download_posters(metadatas):
             print(f'\t\tDownloading image {media_url}')
 
             extension = re.sub(r'.*(\..*?)$', r'\g<1>', media_url)
-            filepath = get_filepath(title, extension,
-                                    counter if len(imgs) > 1 else None)
+            filepath = make_poster_filepath(title, extension,
+                                            counter if len(imgs) > 1 else None)
 
             img_request = Request(media_url, headers=HEADERS)
             pil_image = Image.open(BytesIO(urlopen(img_request).read()))
@@ -65,6 +101,10 @@ def download_posters(metadatas):
 
 
 def choose_keepers():
+    """
+    Run the dialog to let the user choose which posters to keep.
+    Prompt the user to pick one poster from each poster set. Delete the others.
+    """
     posters = os.listdir(POSTERS_DIR)
 
     by_title = {}
@@ -100,14 +140,21 @@ def choose_keepers():
 
         for poster_number in files.keys():
             if poster_number != keeper_number:
-                os.remove(get_filepath(files[poster_number]))
+                os.remove(make_poster_filepath(files[poster_number]))
 
         old_name_split = files[keeper_number].split('.')
         new_name = old_name_split[0] + '.' + old_name_split[2]
-        os.rename(get_filepath(files[keeper_number]), get_filepath(new_name))
+        os.rename(make_poster_filepath(files[keeper_number]), make_poster_filepath(new_name))
 
 
 def load_movie_metadata():
+    """Get MovieMetadatas for each of the IMDB codes in CODES_FILE.
+
+    Returns
+    -------
+    list[MovieMetadata]
+        list of MovieMetadata objects representing the movies in CODES_FILE
+    """
     metadatas = []
 
     print('Loading IMDB codes...')
@@ -151,10 +198,10 @@ def load_movie_metadata():
     return metadatas
 
 if __name__ == '__main__':
-    print(' --- LOADING MOVIE METADATA --- ')
+    print('\n --- LOADING MOVIE METADATA --- \n')
     metadatas = load_movie_metadata()
 
-    print(' --- DOWNLOADING POSTERS --- ')
+    print('\n --- DOWNLOADING POSTERS --- \n')
     download_posters(metadatas)
 
     choice = input('Done downloading. Choose posters to keep (in order if asc name)? (Y/n) ')
