@@ -157,13 +157,14 @@ def load_movie_metadata():
     """
     metadatas = []
 
-    print('Loading IMDB codes...')
+    print(f'Loading IMDB codes from {CODES_FILE}...')
     with open(CODES_FILE) as f:
         raw_lines = f.readlines()
         print('Codes loaded\n')
 
         codes = []
 
+        # Iterate thru once so we can calculate the actual number of codes
         for code in raw_lines:
             if code[0] == '#':  # Ignore comments
                 continue
@@ -172,11 +173,11 @@ def load_movie_metadata():
 
             codes.append(code)
 
-        length = len(codes)
+        num_codes = len(codes)
 
         for c, code in enumerate(codes):
             url = f'{ROOT_URL}{code}/'
-            print(f'({c + 1} / {length}) Finding media for {url}')
+            print(f'({c + 1} / {num_codes}) Finding media for {url}')
 
             try:
                 html = get_page_html(url)
@@ -186,7 +187,7 @@ def load_movie_metadata():
 
             title = re.findall(r'<title>.*?</title>', html)[0]  # Isolate title element
             title = re.sub(r'<title/?>', '', title)             # Strip element tags
-            title = re.sub(r'(.*?) \(.*', r'\g<1>', title)       # Remove " (1983) - IMDB"
+            title = re.sub(r'(.*?) \(.*', r'\g<1>', title)      # Remove " (1983) - IMDB"
             title = "".join(char for char in title if char.isalnum())  # Sanitize
             print(f'\tTitle: "{title}"')
 
