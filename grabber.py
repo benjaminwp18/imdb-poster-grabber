@@ -45,14 +45,14 @@ def download_posters(metadatas):
         html = urlopen(page_request).read().decode("utf-8")
 
         imgs = re.findall('<img.*?/>', html)
-        imgs = [re.sub('<img.*?src=[\'"](.*?)[\'"].*?/>', '\g<1>', img) for img in
+        imgs = [re.sub(r'<img.*?src=[\'"](.*?)[\'"].*?/>', r'\g<1>', img) for img in
                 imgs if ('.jpg' in img or '.png' in img or '//fls-' not in img)]
 
         counter = 1
         for media_url in imgs:
             print(f'\t\tDownloading image {media_url}')
 
-            extension = re.sub('.*(\..*?)$', '\g<1>', media_url)
+            extension = re.sub(r'.*(\..*?)$', r'\g<1>', media_url)
             filepath = get_filepath(title, extension,
                                     counter if len(imgs) > 1 else None)
 
@@ -137,13 +137,13 @@ def load_movie_metadata():
                 print('Failed to get page. Your code might be invalid.')
                 continue
 
-            title = re.findall('<title>.*?</title>', html)[0]  # Isolate title element
-            title = re.sub('<title/?>', '', title)             # Strip element tags
-            title = re.sub('(.*?) \(.*', '\g<1>', title)       # Remove " (1983) - IMDB"
+            title = re.findall(r'<title>.*?</title>', html)[0]  # Isolate title element
+            title = re.sub(r'<title/?>', '', title)             # Strip element tags
+            title = re.sub(r'(.*?) \(.*', r'\g<1>', title)       # Remove " (1983) - IMDB"
             title = "".join(char for char in title if char.isalnum())  # Sanitize
             print(f'\tTitle: "{title}"')
 
-            media_url = url + re.findall('mediaviewer/.*?"', html)[0][:-1]
+            media_url = url + re.findall(r'mediaviewer/.*?"', html)[0][:-1]
             print(f'\tMedia found at {media_url}')
 
             metadatas.append(MovieMetadata(code, url, media_url, title))
